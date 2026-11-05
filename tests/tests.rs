@@ -427,4 +427,19 @@ mod buffer_backend {
     use super::*;
 
     gen_tests_for_backend!(backend::BufferBackend<DefaultSymbol>);
+
+    #[test]
+    #[should_panic(expected = "encountered invalid symbol")]
+    fn symbol_overflow_panics() {
+        use string_interner::symbol::SymbolU16;
+
+        // The first string takes 3 + 65535 bytes in the buffer, so the second
+        // one starts at offset 65538, which does not fit into a `SymbolU16`.
+        let mut interner =
+            string_interner::StringInterner::<backend::BufferBackend<SymbolU16>>::new();
+        for string in ["x".repeat(usize::from(u16::MAX)), "y".to_string()] {
+            let symbol = interner.get_or_intern(&string);
+            assert_eq!(interner.resolve(symbol), Some(string.as_str()));
+        }
+    }
 }
