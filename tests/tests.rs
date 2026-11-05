@@ -224,6 +224,20 @@ macro_rules! gen_tests_for_backend {
         }
 
         #[test]
+        fn clone_with_static_works() {
+            let mut interner = StringInterner::new();
+            let aa = interner.get_or_intern_static("a static string");
+            let bb = interner.get_or_intern("bb");
+
+            let mut cloned = interner.clone();
+            assert_eq!(interner, cloned);
+            assert_eq!(cloned.resolve(aa), Some("a static string"));
+            assert_eq!(cloned.resolve(bb), Some("bb"));
+            assert_eq!(cloned.get_or_intern("a static string"), aa);
+            assert_eq!(cloned.get_or_intern_static("bb"), bb);
+        }
+
+        #[test]
         fn get_or_intern_works() {
             let mut interner = StringInterner::new();
             // Insert 3 unique strings:

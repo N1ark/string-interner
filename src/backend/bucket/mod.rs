@@ -171,8 +171,10 @@ impl<S> Clone for BucketBackend<S> {
     fn clone(&self) -> Self {
         // For performance reasons we copy all cloned strings into a single cloned
         // head string leaving the cloned `full` empty.
-        let new_head_cap =
-            self.head.capacity() + self.full.iter().fold(0, |lhs, rhs| lhs + rhs.len());
+        //
+        // The capacity is computed from the spans since strings interned via
+        // `intern_static` are stored in neither `head` nor `full`.
+        let new_head_cap = self.spans.iter().map(|span| span.as_str().len()).sum();
         let mut head = FixedString::with_capacity(new_head_cap);
         let mut spans = Vec::with_capacity(self.spans.len());
         for span in &self.spans {
